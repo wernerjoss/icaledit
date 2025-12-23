@@ -52,6 +52,7 @@ class MainWindow(QMainWindow, icedit_ui.Ui_MainWindow):
 		    
 	def UpdateInfoPane(self):
 		self.plainTextEdit.clear()
+		self.edit_menu.clear()	#	important !
 		if (self.filename):
 			self.message('Datei:\t'+self.filename)
 		enum = 1
@@ -60,23 +61,24 @@ class MainWindow(QMainWindow, icedit_ui.Ui_MainWindow):
 				event = Event()
 				event = component
 				#if not str(component.get("name")):
-				if (str(event.get("name")) == "None"):
-					Name = 'Event '+str(enum)
+				if (str(event.get("summary")) == "None"):
+					eventId = 'Event '+str(enum)
 				else:
-					Name = str(event.get("name"))
+					eventId = str(event.get("summary"))
 				
 				# edit Events menu
-				event_action = QAction(Name, self)
+				event_action = QAction(eventId, self)
 				event_action.triggered.connect(self.EditEvent)
 				self.edit_menu.addAction(event_action)
 
-				#print ("Name: ", Name)
-				event["name"] = Name	# finally, that's it :-)
-				#self.message('Name:\t'+Name)
-				self.message('Event:\t'+str(event.get("name")))
+				#print ("eventId: ", eventId)
+				event["summary"] = eventId	# finally, that's it :-)
+				event["name"] = eventId	# finally, that's it :-)
+				#self.message('eventId:\t'+eventId)
+				#self.message('Event:\t'+str(event.get("name")))
+				self.message('Summary:\t'+str(event.get("summary")))
 				self.message('Descr.:\t'+str(event.get("description")))
 				self.message('Orga:\t'+str(event.get("organizer")))
-				self.message('Summary:\t'+str(event.get("summary")))
 				self.message('Ort:\t'+str(event.get("location")))
 				self.message('URL:\t'+str(event.get("url")))
 				#self.message('GEO:\t'+str(event.get("geo")))
@@ -96,11 +98,11 @@ class MainWindow(QMainWindow, icedit_ui.Ui_MainWindow):
 			self.ecal.add("version", "2.0")
 
 			event = Event()
-			event.add("name","New")
+			event.add("summary","New")
 			event.add("dtstart",date.today())
 			event.add("dtend",date.today())
 			event.add("location","")
-			event.add("summary","")
+			event.add("name","New")
 			#event.add("geo","49.1,3.2")
 			event.add("url","")
 			today = QDate.currentDate()
@@ -112,28 +114,30 @@ class MainWindow(QMainWindow, icedit_ui.Ui_MainWindow):
 			self.UpdateInfoPane()
 	
 	def AddEvents(self):
-		selectedName = self.sender()
+		selectedEvent = self.sender()
 		self.edit_menu.clear()	#	important !
-		print("Sender: ", selectedName.text())
+		print("Sender: ", selectedEvent.text())
 		if (self.ecal):
 			event = Event()
 			for component in self.ecal.walk():
 				if component.name == "VEVENT":
 					event = component
 					start = event.get("dtstart")	# get a valid dtstart
-					#print("Event: ", event.get("name"))
+					#print("Event: ", event.get("summary"))
 			event = Event()	# new Event !
-			event["name"] = selectedName.text()
+			event["summary"] = selectedEvent.text()
+			event["name"] = event["summary"]
 			event["dtstart"] = start	#	these 2 must be populated !
 			event["dtend"] = start
 			self.ecal.add_component(event)	# kompletten event zum Kalender hinzufügen !
 			event = Event()
+			self.edit_menu.clear()	#	important !
 			for component in self.ecal.walk():
 				if component.name == "VEVENT":
 					event = component
-					print("Event added: ", event.get("name"))
+					print("Event added: ", event.get("summary"))
 					#edit Events menu
-					event_action = QAction(event.get("name"), self)
+					event_action = QAction(event.get("summary"), self)
 					event_action.triggered.connect(self.EditEvent)
 					self.edit_menu.addAction(event_action)
 
@@ -159,22 +163,24 @@ class MainWindow(QMainWindow, icedit_ui.Ui_MainWindow):
 	
 	def EditEvent(self):
 		# see https://stackoverflow.com/questions/52526040/how-to-get-the-name-of-a-qmenu-item-when-clicked
-		selectedName = self.sender()
-		print("selected Event (edit): ",selectedName.text())
+		selectedEvent = self.sender()
+		print("selected Event (edit): ",selectedEvent.text())
 
 		for component in self.ecal.walk():
 			if component.name == "VEVENT":
 				event = Event()
 				event = component
-				Name = str(event.get("name"))
-				print("Name: ", Name)
-				if (Name == selectedName.text()):
+				eventId = str(event.get("summary"))
+				print("eventId: ", eventId)
+				if (eventId == selectedEvent.text()):
 					self.selectedEvent = event
-					#print("Found: ", Name)
+					#print("Found: ", eventId)
 					break
-		print("selected Name: ", Name)
-		self.nameEdit.setEnabled(True)
-		self.nameEdit.setText(Name)
+		print("selected eventId: ", eventId)
+		#self.nameEdit.setEnabled(True)
+		self.sumEdit.setEnabled(True)
+		self.nameEdit.setText(eventId)
+		self.sumEdit.setText(eventId)
 		self.startEdit.setEnabled(True)
 		
 		#print(str(event.decoded("dtstart")))
@@ -221,13 +227,14 @@ class MainWindow(QMainWindow, icedit_ui.Ui_MainWindow):
 			if component.name == "VEVENT":
 				event = Event()
 				event = component
-				Name = str(event.get("name"))
-				if (Name == self.nameEdit.text()):
+				eventId = str(event.get("summary"))
+				if (eventId == self.sumEdit.text()):
 					self.selectedEvent = event
-					#print("Found: ", Name)
+					#print("Found: ", eventId)
 					break
-		print("selected Name: ", Name)
-		self.selectedEvent["name"] = self.nameEdit.text()
+		print("selected eventId: ", eventId)
+		self.selectedEvent["summary"] = self.sumEdit.text()
+		self.selectedEvent["name"] = self.sumEdit.text()
 		self.selectedEvent["description"] = self.descEdit.text()
 		line = self.startEdit.text()
 		print(line)

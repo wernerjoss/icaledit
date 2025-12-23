@@ -34,7 +34,7 @@
     <property name="geometry">
      <rect>
       <x>530</x>
-      <y>30</y>
+      <y>330</y>
       <width>451</width>
       <height>37</height>
      </rect>
@@ -102,7 +102,7 @@
     <property name="geometry">
      <rect>
       <x>530</x>
-      <y>260</y>
+      <y>30</y>
       <width>451</width>
       <height>37</height>
      </rect>
@@ -118,7 +118,7 @@
     <property name="geometry">
      <rect>
       <x>530</x>
-      <y>330</y>
+      <y>260</y>
       <width>451</width>
       <height>37</height>
      </rect>
@@ -211,13 +211,13 @@
     <property name="geometry">
      <rect>
       <x>530</x>
-      <y>0</y>
+      <y>300</y>
       <width>111</width>
       <height>24</height>
      </rect>
     </property>
     <property name="text">
-     <string>Event Name:</string>
+     <string>Name:</string>
     </property>
    </widget>
    <widget class="QLabel" name="StartLabel">
@@ -251,38 +251,38 @@
      <rect>
       <x>530</x>
       <y>160</y>
-      <width>76</width>
+      <width>121</width>
       <height>24</height>
      </rect>
     </property>
     <property name="text">
-     <string>Ort:</string>
+     <string>Location/Ort:</string>
     </property>
    </widget>
    <widget class="QLabel" name="SumLabel">
     <property name="geometry">
      <rect>
       <x>530</x>
-      <y>230</y>
-      <width>181</width>
+      <y>0</y>
+      <width>251</width>
       <height>24</height>
      </rect>
     </property>
     <property name="text">
-     <string>Zusammenfassung:</string>
+     <string>Summary/Zusammenfassung:</string>
     </property>
    </widget>
    <widget class="QLabel" name="DescLabel">
     <property name="geometry">
      <rect>
       <x>530</x>
-      <y>300</y>
-      <width>141</width>
+      <y>230</y>
+      <width>211</width>
       <height>24</height>
      </rect>
     </property>
     <property name="text">
-     <string>Beschreibung:</string>
+     <string>Description/Beschreibung:</string>
     </property>
    </widget>
    <widget class="QLabel" name="UrlLabel">
@@ -310,7 +310,7 @@
    </property>
    <widget class="QMenu" name="menuDatei">
     <property name="title">
-     <string>&amp;Datei</string>
+     <string>&amp;File</string>
     </property>
     <addaction name="actionNeu"/>
     <addaction name="actionOpen"/>
