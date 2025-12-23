@@ -35,3 +35,9 @@ Properties stored in an existing file that are not offered for editing here are 
 The file saved after editing can then be easily imported into an existing online calendar.  
 
 This program needs the Python Librarys icalendar, yaml and PyQt6 installed, it can be downloaded from my [GitHub Site](https://github.com/wernerjoss/icaledit).
+
+## TODO:
+-	handle invalid Input Data
+-	support GEO Property
+-	add Translations ?
+-	allow new Events created as Copy of existing Events
