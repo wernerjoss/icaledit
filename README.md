@@ -1,5 +1,6 @@
 ## icaledit.py - ein Python Programm zur Erstellung und Bearbeitung von .ics Kalender Dateien.
 
+![](./icaledit.png)
 Dieses Programm ermöglicht die Erstellung und Bearbeitung von Kalender-Dateien, insbesondere mit der Möglichkeit, Properties die von Standard-Kalender Client Programmen (z.B. Thunderbird/Lightning, KDE Kalender, die meisten mobilen Kalender Apps...) nicht oder schlecht unterstützt werden, einzufügen bzw. zu ändern.  
 Eine dieser Properties die ich öfter brauche, ist URL - also ein Link, oder auch geografische Koordinaten (GEO).  
 Das einzige mir bekannte Programm, das dies (URL) kann, ist die Webanwendung [Infcloud](https://inf-it.com/open-source/clients/infcloud/).  
