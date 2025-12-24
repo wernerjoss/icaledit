@@ -10,6 +10,7 @@ import icedit_ui
 # calendars
 from icalendar import Calendar, Event, vCalAddress, vText
 from datetime import date, datetime
+from dateutil import parser
 from pathlib import Path
 import os
 import pytz
@@ -44,7 +45,7 @@ class MainWindow(QMainWindow, icedit_ui.Ui_MainWindow):
 		if self.filename:
 			self.edit_menu.clear()	#	important !
 			fileName = Path(self.filename)	#.selectedFiles()
-			print(fileName)
+			print("open ",fileName)
 			e = open(fileName, 'rb')
 			self.ecal = Calendar.from_ical(e.read())
 			self.UpdateInfoPane()
@@ -82,10 +83,20 @@ class MainWindow(QMainWindow, icedit_ui.Ui_MainWindow):
 				self.message('Ort:\t'+str(event.get("location")))
 				self.message('URL:\t'+str(event.get("url")))
 				#self.message('GEO:\t'+str(event.get("geo")))
-				if (event.get("dtstart")):
-					self.message('Start:\t'+str(event.decoded("dtstart")))
-				if (event.get("dtend")):
-					self.message('End:\t'+str(event.decoded("dtend")))
+				dtstart = event.get("dtstart")	# .dt is icalendar date object !
+				try:
+					dt = dtstart.dt
+				except:
+					dt = dtstart
+				if (dt):
+					self.message('Start:\t'+dt.strftime("%d.%m.%Y"))	#	+str(type(dtstart)))	#	event.get("dtstart").dt))
+				dtend = event.get("dtend")
+				try:
+					dt = dtend.dt
+				except:
+					dt = dtend
+				if (dt):
+					self.message('End:\t'+dt.strftime("%d.%m.%Y"))
 				self.message('\t')
 				enum += 1
 					
@@ -103,14 +114,14 @@ class MainWindow(QMainWindow, icedit_ui.Ui_MainWindow):
 			event.add("dtend",date.today())
 			event.add("location","")
 			event.add("name","New")
-			#event.add("geo","49.1,3.2")
+			#	event.add("geo","37.386013;-122.082932")
 			event.add("url","")
 			today = QDate.currentDate()
 			self.ecal.add_component(event)
 			with open(fileName, "wb") as f:
 			    f.write(self.ecal.to_ical())
-			print(self.ecal)
-			print(fileName)
+			#print(self.ecal)
+			print("new file ",fileName)
 			self.UpdateInfoPane()
 	
 	def AddEvents(self):
@@ -123,7 +134,7 @@ class MainWindow(QMainWindow, icedit_ui.Ui_MainWindow):
 				if component.name == "VEVENT":
 					event = component
 					start = event.get("dtstart")	# get a valid dtstart
-					#print("Event: ", event.get("summary"))
+					#print("dtstart: ", start.decoded())
 			event = Event()	# new Event !
 			event["summary"] = selectedEvent.text()
 			event["name"] = event["summary"]
@@ -146,8 +157,28 @@ class MainWindow(QMainWindow, icedit_ui.Ui_MainWindow):
 		if (self.ecal):
 			with open(fileName, "wb") as f:
 			    f.write(self.ecal.to_ical())
-			print(self.ecal)
-			print(fileName)
+			
+			# workaround for dtstart/dtend type confusion (datetime <-> vDDDTypes):
+			e = open(fileName, 'r')	# read as text, NOT binary
+			text = e.read()
+			e.close()
+			text = text.split("\n")
+			liste = []
+			of = open(fileName, "w")
+			for line in text:
+				if (line.startswith("DTSTART")) or (line.startswith("DTEND")):
+					#print(line)
+					line = line.replace('-', '')
+					line = line.replace(' ', 'T')
+					line = line.replace(':', ';')
+					line = line.replace(';', ':', 1)
+					line = line.replace(';', '')
+					#print(line)
+				liste.append(line)
+				of.write(line+"\n")
+			#print(liste)
+			of.close()
+			#print(fileName)
 		self.UpdateInfoPane()
 	
 	def SaveAsFile(self):
@@ -157,8 +188,27 @@ class MainWindow(QMainWindow, icedit_ui.Ui_MainWindow):
 		if (self.ecal):
 			with open(fileName, "wb") as f:
 			    f.write(self.ecal.to_ical())
-			print(self.ecal)
-			print(fileName)
+			
+			# workaround for dtstart/dtend type confusion (datetime <-> vDDDTypes):
+			e = open(fileName, 'r')	# read as text, NOT binary
+			text = e.read()
+			e.close()
+			text = text.split("\n")
+			liste = []
+			of = open(fileName, "w")
+			for line in text:
+				if (line.startswith("DTSTART")) or (line.startswith("DTEND")):
+					#print(line)
+					line = line.replace('-', '')
+					line = line.replace(' ', 'T')
+					line = line.replace(':', ';')
+					line = line.replace(';', ':', 1)	# keep first ':' (e.g. DTSTART:)
+					line = line.replace(';', '')	#	delete rest of undesired ';'s
+					#print(line)
+				liste.append(line)
+				of.write(line+"\n")
+			#print(liste)
+			of.close()
 		self.UpdateInfoPane()
 	
 	def EditEvent(self):
@@ -182,28 +232,11 @@ class MainWindow(QMainWindow, icedit_ui.Ui_MainWindow):
 		self.nameEdit.setText(eventId)
 		self.sumEdit.setText(eventId)
 		self.startEdit.setEnabled(True)
-		
-		#print(str(event.decoded("dtstart")))
-		line = str(event.decoded("dtstart"))
-		arr = line.split("-")
-		#print(arr)
-		y = int(arr[0])
-		m = int(arr[1])
-		d = int(arr[2])
-		#print(y,m,d)
-		evStart = QDate(y, m, d)
-		self.startEdit.setDate(evStart)
+		dtstart = event.get("dtstart").dt
+		self.startEdit.setDate(dtstart)
 		self.startEdit.setDisplayFormat('dd.MM.yyyy')
-		#print(str(event.decoded("dtend")))
-		line = str(event.decoded("dtend"))
-		arr = line.split("-")
-		#print(arr)
-		y = int(arr[0])
-		m = int(arr[1])
-		d = int(arr[2])
-		#print(y,m,d)
-		evEnd = QDate(y, m, d)
-		self.endEdit.setDate(evEnd)
+		dtend = event.get("dtend").dt
+		self.endEdit.setDate(dtend)	#	evEnd)
 		self.endEdit.setDisplayFormat('dd.MM.yyyy')
 		self.endEdit.setEnabled(True)
 		self.urlEdit.setEnabled(True)
@@ -236,22 +269,21 @@ class MainWindow(QMainWindow, icedit_ui.Ui_MainWindow):
 		self.selectedEvent["summary"] = self.sumEdit.text()
 		self.selectedEvent["name"] = self.sumEdit.text()
 		self.selectedEvent["description"] = self.descEdit.text()
-		line = self.startEdit.text()
-		print(line)
-		arr = line.split(".")
-		#print(arr)
-		y = int(arr[2]);		m = int(arr[1]);		d = int(arr[0])
-		print(y,m,d)
-		evStart = QDate(y, m, d)
-		self.selectedEvent["dtstart"] = evStart.toString('yyyyMMdd')
-		line = self.endEdit.text()
-		print(line)
-		arr = line.split(".")
-		#print(arr)
-		y = int(arr[2]);		m = int(arr[1]);		d = int(arr[0])
-		print(y,m,d)
-		evEnd = QDate(y, m, d)
-		self.selectedEvent["dtend"] = evEnd.toString('yyyyMMdd')
+		startline = self.startEdit.text()
+		#print(startline)
+		datetime_obj = datetime.strptime(startline, "%d.%m.%Y")
+		#print(type(datetime_obj))
+		#date = datetime_obj.date()
+		#print(type(date))
+		self.selectedEvent["dtstart"] = datetime_obj
+		startline = self.endEdit.text()
+		datetime_obj = datetime.strptime(startline, "%d.%m.%Y")
+		#print(type(date))
+		#print(vDDDTypes(datetime_obj))
+		#date = datetime_obj.date()
+		#print(type(date))
+		self.selectedEvent["dtend"] = datetime_obj
+		
 		self.selectedEvent["location"] = self.locEdit.text()
 		self.selectedEvent["url"] = self.urlEdit.text()
 		#if not self.geoEdit.text() == "":
