@@ -29,6 +29,7 @@ class MainWindow(QMainWindow, icedit_ui.Ui_MainWindow):
 		self.actionOpen.triggered.connect(self.OpenFile)
 		self.actionSpeichern.triggered.connect(self.SaveFile)
 		self.actionSpeichern_unter.triggered.connect(self.SaveAsFile)
+		self.actionBeenden.triggered.connect(self.quit)
 		self.okButton.clicked.connect(self.EditOk)
 		self.edit_menu = self.menubar.addMenu('&Edit Event(s)')
 		self.addevent_menu = self.menubar.addMenu('&Add Event(s)')
@@ -232,10 +233,16 @@ class MainWindow(QMainWindow, icedit_ui.Ui_MainWindow):
 		self.nameEdit.setText(eventId)
 		self.sumEdit.setText(eventId)
 		self.startEdit.setEnabled(True)
-		dtstart = event.get("dtstart").dt
+		try:
+			dtstart = event.get("dtstart").dt
+		except:
+			dtstart = date.today()	#	workaround for datetime.datetime issue
 		self.startEdit.setDate(dtstart)
 		self.startEdit.setDisplayFormat('dd.MM.yyyy')
-		dtend = event.get("dtend").dt
+		try:
+			dtend = event.get("dtend").dt
+		except:
+			dtend = date.today()
 		self.endEdit.setDate(dtend)	#	evEnd)
 		self.endEdit.setDisplayFormat('dd.MM.yyyy')
 		self.endEdit.setEnabled(True)
@@ -293,7 +300,7 @@ class MainWindow(QMainWindow, icedit_ui.Ui_MainWindow):
 		self.UpdateInfoPane()
 				
 	def quit(self):
-		self.destroy()
+		app.quit()
 
 
 app = QApplication(sys.argv)
