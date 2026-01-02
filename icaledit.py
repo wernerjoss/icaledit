@@ -28,11 +28,13 @@ class MainWindow(QMainWindow, icedit_ui.Ui_MainWindow):
 		self.actionNeu.triggered.connect(self.NewFile)
 		self.actionOpen.triggered.connect(self.OpenFile)
 		self.actionSpeichern.triggered.connect(self.SaveFile)
+		self.actionSpeichern.setEnabled(False)
 		self.actionSpeichern_unter.triggered.connect(self.SaveAsFile)
 		self.actionBeenden.triggered.connect(self.quit)
 		self.okButton.clicked.connect(self.EditOk)
 		self.edit_menu = self.menubar.addMenu('&Edit Event(s)')
 		self.addevent_menu = self.menubar.addMenu('&Add Event(s)')
+		self.addevent_menu.setEnabled(False)
 		# edit Events menu
 		event_action = QAction("Neuer Termin", self)
 		event_action.triggered.connect(self.AddEvents)
@@ -51,6 +53,8 @@ class MainWindow(QMainWindow, icedit_ui.Ui_MainWindow):
 			self.ecal = Calendar.from_ical(e.read())
 			self.UpdateInfoPane()
 			e.close()
+			self.addevent_menu.setEnabled(True)
+			self.actionSpeichern.setEnabled(True)
 		    
 	def UpdateInfoPane(self):
 		self.plainTextEdit.clear()
@@ -124,7 +128,9 @@ class MainWindow(QMainWindow, icedit_ui.Ui_MainWindow):
 			#print(self.ecal)
 			print("new file ",fileName)
 			self.UpdateInfoPane()
-	
+			self.addevent_menu.setEnabled(True)
+			self.actionSpeichern.setEnabled(True)
+		    
 	def AddEvents(self):
 		selectedEvent = self.sender()
 		self.edit_menu.clear()	#	important !
@@ -139,11 +145,20 @@ class MainWindow(QMainWindow, icedit_ui.Ui_MainWindow):
 			event = Event()	# new Event !
 			event["summary"] = selectedEvent.text()
 			event["name"] = event["summary"]
-			event["dtstart"] = start	#	these 2 must be populated !
-			event["dtend"] = start
+			try:
+				event["dtstart"] = start	#	these 2 must be populated !
+			except:
+				dtstart = date.today()	#	workaround for datetime.datetime issue
+			try:
+				event["dtend"] = start
+			except:
+				dtend = date.today()	#	workaround for datetime.datetime issue
 			self.ecal.add_component(event)	# kompletten event zum Kalender hinzufügen !
 			event = Event()
 			self.edit_menu.clear()	#	important !
+			
+			self.EditEvent()	# new 02.02.26 - directly edit added Event
+			
 			for component in self.ecal.walk():
 				if component.name == "VEVENT":
 					event = component
