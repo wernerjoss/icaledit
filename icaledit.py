@@ -189,6 +189,8 @@ class MainWindow(QMainWindow, icedit_ui.Ui_MainWindow):
 					line = line.replace(':', ';')
 					line = line.replace(';', ':', 1)
 					line = line.replace(';', '')
+					line = line.replace('T000000', '')	# ganztags :-)
+					# TODO: allow start - endtime !
 					#print(line)
 				liste.append(line)
 				of.write(line+"\n")
@@ -220,6 +222,7 @@ class MainWindow(QMainWindow, icedit_ui.Ui_MainWindow):
 					line = line.replace(':', ';')
 					line = line.replace(';', ':', 1)	# keep first ':' (e.g. DTSTART:)
 					line = line.replace(';', '')	#	delete rest of undesired ';'s
+					line = line.replace('T000000', '')	# ganztags :-)
 					#print(line)
 				liste.append(line)
 				of.write(line+"\n")
@@ -321,7 +324,7 @@ class MainWindow(QMainWindow, icedit_ui.Ui_MainWindow):
 app = QApplication(sys.argv)
 
 w = MainWindow()
-title = "icaledit.py v 0.1.0 (C) Werner Joss 2025"
+title = "icaledit.py v 0.1.2 (C) Werner Joss 2025"
 w.setWindowTitle(title)
 
 w.show()
