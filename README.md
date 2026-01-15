@@ -38,6 +38,7 @@ The file saved after editing can then be easily imported into an existing online
 This program needs the Python Librarys icalendar, yaml and PyQt6 installed, it can be downloaded from my [GitHub Site](https://github.com/wernerjoss/icaledit).
 
 ## TODO:
+-	allow part day events
 -	handle invalid Input Data
 -	support GEO Property
 -	add Translations ?

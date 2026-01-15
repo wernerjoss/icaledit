@@ -55,7 +55,7 @@ class MainWindow(QMainWindow, icedit_ui.Ui_MainWindow):
 			e.close()
 			self.addevent_menu.setEnabled(True)
 			self.actionSpeichern.setEnabled(True)
-		    
+			
 	def UpdateInfoPane(self):
 		self.plainTextEdit.clear()
 		self.edit_menu.clear()	#	important !
@@ -86,7 +86,8 @@ class MainWindow(QMainWindow, icedit_ui.Ui_MainWindow):
 				self.message('Descr.:\t'+str(event.get("description")))
 				self.message('Orga:\t'+str(event.get("organizer")))
 				self.message('Ort:\t'+str(event.get("location")))
-				self.message('URL:\t'+str(event.get("url")))
+				if len(str(event.get("url"))):
+					self.message('URL:\t'+str(event.get("url")))
 				#self.message('GEO:\t'+str(event.get("geo")))
 				dtstart = event.get("dtstart")	# .dt is icalendar date object !
 				try:
@@ -120,7 +121,7 @@ class MainWindow(QMainWindow, icedit_ui.Ui_MainWindow):
 			event.add("location","")
 			event.add("name","New")
 			#	event.add("geo","37.386013;-122.082932")
-			event.add("url","")
+			#	event.add("url","")
 			today = QDate.currentDate()
 			self.ecal.add_component(event)
 			with open(fileName, "wb") as f:
@@ -130,7 +131,7 @@ class MainWindow(QMainWindow, icedit_ui.Ui_MainWindow):
 			self.UpdateInfoPane()
 			self.addevent_menu.setEnabled(True)
 			self.actionSpeichern.setEnabled(True)
-		    
+	
 	def AddEvents(self):
 		selectedEvent = self.sender()
 		self.edit_menu.clear()	#	important !
@@ -156,9 +157,7 @@ class MainWindow(QMainWindow, icedit_ui.Ui_MainWindow):
 			self.ecal.add_component(event)	# kompletten event zum Kalender hinzufügen !
 			event = Event()
 			self.edit_menu.clear()	#	important !
-			
 			self.EditEvent()	# new 02.02.26 - directly edit added Event
-			
 			for component in self.ecal.walk():
 				if component.name == "VEVENT":
 					event = component
@@ -179,57 +178,38 @@ class MainWindow(QMainWindow, icedit_ui.Ui_MainWindow):
 			text = e.read()
 			e.close()
 			text = text.split("\n")
-			liste = []
 			of = open(fileName, "w")
 			for line in text:
 				if (line.startswith("DTSTART")) or (line.startswith("DTEND")):
-					#print(line)
 					line = line.replace('-', '')
 					line = line.replace(' ', 'T')
 					line = line.replace(':', ';')
 					line = line.replace(';', ':', 1)
 					line = line.replace(';', '')
-					line = line.replace('T000000', '')	# ganztags :-)
-					# TODO: allow start - endtime !
-					#print(line)
-				liste.append(line)
-				of.write(line+"\n")
-			#print(liste)
+					line = line.replace('T000000', '')
+					text = line.split(":");
+					if (line.startswith("DTSTART")):
+						dtstart = text[1];
+						of.write(line+"\n")
+					if (line.startswith("DTEND")):
+						dtend = text[1];
+						if (dtstart != dtend): # do not write DTEND if if DSTART == DTEND !
+							of.write(line+"\n")
+				elif (line.startswith("URL")):
+					arr = line.split(":");
+					url = arr[1].strip()
+					if (url):
+						of.write(line+"\n")
+				else:
+					of.write(line+"\n")
 			of.close()
 			#print(fileName)
 		self.UpdateInfoPane()
 	
 	def SaveAsFile(self):
 		self.filename, ok = QFileDialog.getSaveFileName(self,  'Save as File', '', 'ics Files (*.ics)')
-		fileName = Path(self.filename)
-		#print(fileName)
-		if (self.ecal):
-			with open(fileName, "wb") as f:
-			    f.write(self.ecal.to_ical())
+		self.SaveFile()
 			
-			# workaround for dtstart/dtend type confusion (datetime <-> vDDDTypes):
-			e = open(fileName, 'r')	# read as text, NOT binary
-			text = e.read()
-			e.close()
-			text = text.split("\n")
-			liste = []
-			of = open(fileName, "w")
-			for line in text:
-				if (line.startswith("DTSTART")) or (line.startswith("DTEND")):
-					#print(line)
-					line = line.replace('-', '')
-					line = line.replace(' ', 'T')
-					line = line.replace(':', ';')
-					line = line.replace(';', ':', 1)	# keep first ':' (e.g. DTSTART:)
-					line = line.replace(';', '')	#	delete rest of undesired ';'s
-					line = line.replace('T000000', '')	# ganztags :-)
-					#print(line)
-				liste.append(line)
-				of.write(line+"\n")
-			#print(liste)
-			of.close()
-		self.UpdateInfoPane()
-	
 	def EditEvent(self):
 		# see https://stackoverflow.com/questions/52526040/how-to-get-the-name-of-a-qmenu-item-when-clicked
 		selectedEvent = self.sender()
@@ -310,7 +290,10 @@ class MainWindow(QMainWindow, icedit_ui.Ui_MainWindow):
 		self.selectedEvent["dtend"] = datetime_obj
 		
 		self.selectedEvent["location"] = self.locEdit.text()
-		self.selectedEvent["url"] = self.urlEdit.text()
+		if len(self.urlEdit.text().strip()):
+			self.selectedEvent["url"] = self.urlEdit.text()
+		else:
+			self.selectedEvent["url"] = ''
 		#if not self.geoEdit.text() == "":
 		#	self.selectedEvent.add("geo", self.geoEdit.text())
 		self.selectedEvent["summary"] = self.sumEdit.text()
@@ -324,7 +307,7 @@ class MainWindow(QMainWindow, icedit_ui.Ui_MainWindow):
 app = QApplication(sys.argv)
 
 w = MainWindow()
-title = "icaledit.py v 0.1.2 (C) Werner Joss 2025"
+title = "icaledit.py v 0.1.3 (C) Werner Joss 2026"
 w.setWindowTitle(title)
 
 w.show()
